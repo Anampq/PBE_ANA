@@ -1,22 +1,26 @@
-require 'i2c/drivers/lcd'
+require 'i2c/drivers/lcd'   #Importacion de la libreria i2c y el controlador lcd
 
-# Creo una nueva funcion que inicializa el lcd y me procesa un string
-def escribir_en_lcd(texto)
-  display = I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, rows = 20, cols = 4)
-  display.clear
-# Si la longitud del string es inferior a 20 caracteres los escribe en la linea 0
-  if texto.length <= 20
-    display.text(texto, 0)
-# Si la long es superior que escriba en las siguientes lineas
-  else
-    display.text(texto[0, 20], 0)
-    display.text(texto[20..40], 1)
-    display.text(texto[40..60], 2)
-    display.text(texto[60..-1], 3)
-  end
+def crear_lcd               #Funcion que crea y devuelve un objeto LCD
+        return I2C::Drivers::LCD::Display.new('/dev/i2c-1', 0x27, rows = 20, cols = 4)
 end
 
-puts 'Ingrese un texto:'
-input_texto = gets.chomp
+def leer_texto_multilinea   #Funcion que solicita el ingreso de un texto de 4 lineas
+        puts 'Ingrese un texto multilinea:'
+        texto_multilinea = ''
+        4.times do          #Lee cada linea mas un salto de linea y las concatena en una variable
+                texto_multilinea += gets.chomp + "\n"
+        end
+        return texto_multilinea.strip #Elimina el salto de linea adicional al final
+end
 
-escribir_en_lcd(input_texto)
+def escribir_en_lcd(display, texto)    #Funcion que imprime el texto en la lcd
+        display.clear
+        lineas = texto.split("\n")     #Divide el texto en lineas
+        lineas.each_with_index do |linea, index|        #Utiliza un bucle para escribir cada linea en el display
+                display.text(linea[0, 20], index)
+        end
+end
+
+lcd = crear_lcd         #Se crea un objeto lcd
+texto_multilinea = leer_texto_multilinea        #Se obtiene un texto multilinea del usuario
+escribir_en_lcd(lcd, texto_multilinea)          #Se escribe el anterior texto en la lcd
